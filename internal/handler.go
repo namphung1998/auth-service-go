@@ -12,6 +12,12 @@ type Handler struct {
 	userService UserService
 }
 
+func NewHandler(userService UserService) *Handler {
+	return &Handler{
+		userService: userService,
+	}
+}
+
 func writeResponse(w http.ResponseWriter, data interface{}, status int) {
 	w.WriteHeader(status)
 	if data == nil {
@@ -74,6 +80,7 @@ func (h *Handler) HandleCreateUser() http.HandlerFunc {
 		}
 
 		if err := h.userService.Create(CreateUserRequest{req.Email, req.Password}); err != nil {
+			fmt.Println(err)
 			switch err.(type) {
 			case *InvalidRequestError:
 				writeResponse(w, nil, http.StatusBadRequest)
