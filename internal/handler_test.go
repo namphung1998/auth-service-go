@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,8 +26,9 @@ func TestHandleGreet(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		data   request
-		result result
+		data           request
+		result         result
+		userServiceDep func(*gomock.Controller) UserService
 	}{
 		"empty name": {
 			result: result{
@@ -56,6 +58,7 @@ func TestHandleGreet(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			handler := Handler{}
+
 			handler.HandleGreet().ServeHTTP(w, r)
 
 			assert.Equal(t, tt.result.status, w.Result().StatusCode)
