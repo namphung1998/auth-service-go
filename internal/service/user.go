@@ -1,19 +1,18 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/namphung1998/auth-service-go/internal"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // User implements internal.Service
 type User struct {
-	repo internal.UserRepo
-	jwt  internal.JWTService
+	repo   internal.UserRepo
+	jwt    internal.JWTService
+	bcrypt internal.BcryptService
 }
 
-func NewUser(repo internal.UserRepo, jwt internal.JWTService) *User {
+// NewUser returns a new User service object
+func NewUser(repo internal.UserRepo, jwt internal.JWTService, bcrypt internal.BcryptService) *User {
 	return &User{
 		repo: repo,
 		jwt:  jwt,
@@ -31,7 +30,7 @@ func (u *User) Create(email, password string) error {
 		return internal.NewEmailInUseError(email)
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := u.bcrypt.GenerateFromPassword([]byte(password))
 	if err != nil {
 		return err
 	}
@@ -46,10 +45,7 @@ func (u *User) Login(email, password string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(user.ID)
-	fmt.Println(user.Password)
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := u.bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return "", internal.NewInvalidRequestError(email)
 	}
 

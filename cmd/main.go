@@ -10,6 +10,7 @@ import (
 	goJWT "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/namphung1998/auth-service-go/internal/bcrypt"
 	"github.com/namphung1998/auth-service-go/internal/data"
 	"github.com/namphung1998/auth-service-go/internal/httpservice"
 	"github.com/namphung1998/auth-service-go/internal/jwt"
@@ -53,7 +54,8 @@ func main() {
 
 	userRepo := data.NewUserRepo(client.Database("auth-app"))
 	jwtService := jwt.NewService(goJWT.SigningMethodHS256, []byte(jwtSigningKey))
-	userService := service.NewUser(userRepo, jwtService)
+	bcryptService := bcrypt.NewService()
+	userService := service.NewUser(userRepo, jwtService, bcryptService)
 	handler := httpservice.NewHandler(userService)
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)

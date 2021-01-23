@@ -26,9 +26,10 @@ func TestCreate(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		input   input
-		result  result
-		repoDep func(*gomock.Controller) internal.UserRepo
+		input     input
+		result    result
+		repoDep   func(*gomock.Controller) internal.UserRepo
+		bcryptDep func(*gomock.Controller) internal.BcryptService
 	}{
 		"email is taken": {
 			input: sampleInput,
@@ -52,6 +53,11 @@ func TestCreate(t *testing.T) {
 				m.EXPECT().Create(gomock.Eq(sampleInput.email), gomock.Any()).Return(errors.New("repo.Create"))
 				return m
 			},
+			bcryptDep: func(c *gomock.Controller) internal.BcryptService {
+				m := mock.NewMockBcryptService(c)
+				m.EXPECT().GenerateFromPassword(gomock.Eq([]byte(sampleInput.password))).Return([]byte{}, nil)
+				return m
+			},
 		},
 		"all is just fine": {
 			input: sampleInput,
@@ -59,6 +65,11 @@ func TestCreate(t *testing.T) {
 				m := mock.NewMockUserRepo(c)
 				m.EXPECT().IsEmailInUse(gomock.Eq(sampleInput.email)).Return(false, nil)
 				m.EXPECT().Create(gomock.Eq(sampleInput.email), gomock.Any()).Return(nil)
+				return m
+			},
+			bcryptDep: func(c *gomock.Controller) internal.BcryptService {
+				m := mock.NewMockBcryptService(c)
+				m.EXPECT().GenerateFromPassword(gomock.Eq([]byte(sampleInput.password))).Return([]byte{}, nil)
 				return m
 			},
 		},
@@ -74,6 +85,10 @@ func TestCreate(t *testing.T) {
 			defer ctrl.Finish()
 			if tt.repoDep != nil {
 				user.repo = tt.repoDep(ctrl)
+			}
+
+			if tt.bcryptDep != nil {
+				user.bcrypt = tt.bcryptDep(ctrl)
 			}
 
 			err := user.Create(tt.input.email, tt.input.password)
