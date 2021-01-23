@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 
+	"github.com/namphung1998/auth-service-go/internal"
 	"github.com/namphung1998/auth-service-go/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -39,4 +40,14 @@ func (r *userRepo) Create(email, password string) error {
 	})
 
 	return err
+}
+
+func (r *userRepo) Get(email string) (internal.User, error) {
+	var user internal.User
+	err := r.db.Collection("users").FindOne(context.Background(), bson.M{
+		"email": email,
+	}).Decode(&user)
+
+	return user, err
+
 }

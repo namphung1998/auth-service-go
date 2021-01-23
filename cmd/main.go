@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 
+	goJWT "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/namphung1998/auth-service-go/internal/data"
 	"github.com/namphung1998/auth-service-go/internal/httpservice"
+	"github.com/namphung1998/auth-service-go/internal/jwt"
 	"github.com/namphung1998/auth-service-go/internal/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -26,6 +28,8 @@ func main() {
 	flag.StringVar(&mongoPassword, "mongo-password", "", "Password for MongoDB connection")
 	var mongoDatabase string
 	flag.StringVar(&mongoDatabase, "mongo-database", "", "Database name for MongoDB connection")
+	var jwtSigningKey string
+	flag.StringVar(&jwtSigningKey, "jwt-secret", "", "Signing key for generating JWTs")
 
 	flag.Parse()
 
@@ -48,7 +52,8 @@ func main() {
 	fmt.Println(client.Ping(context.Background(), readpref.Primary()))
 
 	userRepo := data.NewUserRepo(client.Database("auth-app"))
-	userService := service.NewUser(userRepo)
+	jwtService := jwt.NewService(goJWT.SigningMethodHS256, []byte(jwtSigningKey))
+	userService := service.NewUser(userRepo, jwtService)
 	handler := httpservice.NewHandler(userService)
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -64,6 +69,7 @@ func main() {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Post("/users", handler.HandleCreateUser())
+		r.Post("/users/login", handler.HandleLogin())
 	})
 
 	http.ListenAndServe(":3090", r)

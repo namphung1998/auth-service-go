@@ -96,3 +96,40 @@ func (h *Handler) HandleCreateUser() http.HandlerFunc {
 		writeResponse(w, nil, http.StatusCreated)
 	}
 }
+
+// HandleLogin returns a HandlerFunc that handles logging in a user
+func (h *Handler) HandleLogin() http.HandlerFunc {
+	type request struct {
+		Email    string `json:"email" valid:"email,required"`
+		Password string `json:"password" valid:"required"`
+	}
+
+	type response struct {
+		Token string `json:"token"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := decode(r, &req); err != nil {
+			fmt.Println(err)
+			writeResponse(w, nil, http.StatusBadRequest)
+			return
+		}
+
+		token, err := h.userService.Login(req.Email, req.Password)
+		if err != nil {
+			fmt.Println(err)
+			switch err.(type) {
+			case *internal.UserNotFoundError:
+				writeResponse(w, nil, http.StatusNotFound)
+			case *internal.IncorrectPasswordError:
+				writeResponse(w, nil, http.StatusUnauthorized)
+			default:
+				writeResponse(w, nil, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		writeResponse(w, response{Token: token}, http.StatusOK)
+	}
+}

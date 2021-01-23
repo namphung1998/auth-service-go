@@ -32,13 +32,36 @@ func NewEmailInUseError(detail string) *EmailInUseError {
 	return &EmailInUseError{detail: detail}
 }
 
-// CreateUserRequest contains data for creating a new user
-type CreateUserRequest struct {
-	Email    string
-	Password string
+// UserNotFoundError is an error that is triggered when no user can be found with the provided email
+type UserNotFoundError struct {
+	email string
+}
+
+func (e *UserNotFoundError) Error() string {
+	return fmt.Sprintf("user not found with email: %s", e.email)
+}
+
+// NewUserNotFoundError returns a new UserNotFoundError
+func NewUserNotFoundError(email string) *UserNotFoundError {
+	return &UserNotFoundError{email: email}
+}
+
+// IncorrectPasswordError is an error that is triggered when the provided password is invalid
+type IncorrectPasswordError struct {
+	email string
+}
+
+func (e *IncorrectPasswordError) Error() string {
+	return fmt.Sprintf("incorrect password for email: %s", e.email)
+}
+
+// NewIncorrectPasswordError returns a new IncorrectPasswordError
+func NewIncorrectPasswordError(email string) *IncorrectPasswordError {
+	return &IncorrectPasswordError{email: email}
 }
 
 // UserService defines the contract for interacting with a service
 type UserService interface {
 	Create(email, password string) error
+	Login(email, password string) (string, error)
 }

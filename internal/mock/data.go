@@ -6,6 +6,7 @@ package mock
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	internal "github.com/namphung1998/auth-service-go/internal"
 	reflect "reflect"
 )
 
@@ -59,4 +60,19 @@ func (m *MockUserRepo) Create(email, password string) error {
 func (mr *MockUserRepoMockRecorder) Create(email, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepo)(nil).Create), email, password)
+}
+
+// Get mocks base method
+func (m *MockUserRepo) Get(email string) (internal.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", email)
+	ret0, _ := ret[0].(internal.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockUserRepoMockRecorder) Get(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserRepo)(nil).Get), email)
 }
