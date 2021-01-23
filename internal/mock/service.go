@@ -6,6 +6,7 @@ package mock
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	internal "github.com/namphung1998/auth-service-go/internal"
 	reflect "reflect"
 )
 
@@ -47,10 +48,10 @@ func (mr *MockUserServiceMockRecorder) Create(email, password interface{}) *gomo
 }
 
 // Login mocks base method
-func (m *MockUserService) Login(email, password string) (string, error) {
+func (m *MockUserService) Login(email, password string) (internal.LoginResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Login", email, password)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(internal.LoginResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

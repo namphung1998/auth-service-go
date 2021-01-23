@@ -60,8 +60,13 @@ func NewIncorrectPasswordError(email string) *IncorrectPasswordError {
 	return &IncorrectPasswordError{email: email}
 }
 
+// LoginResponse is returned from the UserService.Login method
+type LoginResponse struct {
+	Token string
+}
+
 // UserService defines the contract for interacting with a service
 type UserService interface {
 	Create(email, password string) error
-	Login(email, password string) (string, error)
+	Login(email, password string) (LoginResponse, error)
 }

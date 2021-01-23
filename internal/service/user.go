@@ -39,15 +39,22 @@ func (u *User) Create(email, password string) error {
 }
 
 // Login logs in a user
-func (u *User) Login(email, password string) (string, error) {
+func (u *User) Login(email, password string) (internal.LoginResponse, error) {
 	user, err := u.repo.Get(email)
 	if err != nil {
-		return "", err
+		return internal.LoginResponse{}, err
 	}
 
 	if err := u.bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", internal.NewInvalidRequestError(email)
+		return internal.LoginResponse{}, internal.NewInvalidRequestError(email)
 	}
 
-	return u.jwt.GenerateToken(user.ID)
+	token, err := u.jwt.GenerateToken(user.ID)
+	if err != nil {
+		return internal.LoginResponse{}, err
+	}
+
+	return internal.LoginResponse{
+		Token: token,
+	}, nil
 }

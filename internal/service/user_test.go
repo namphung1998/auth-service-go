@@ -96,3 +96,81 @@ func TestCreate(t *testing.T) {
 		})
 	}
 }
+
+func TestLogin(t *testing.T) {
+	type input struct {
+		email    string
+		password string
+	}
+
+	type result struct {
+		err error
+		res internal.LoginResponse
+	}
+
+	sampleInput := input{
+		email:    "email",
+		password: "password",
+	}
+
+	sampleRes := internal.LoginResponse{
+		Token: "token",
+	}
+
+	tests := map[string]struct {
+		input     input
+		result    result
+		repoDep   func(*gomock.Controller) internal.UserRepo
+		bcryptDep func(*gomock.Controller) internal.BcryptService
+		jwtDep    func(*gomock.Controller) internal.JWTService
+	}{
+		"all is well": {
+			input: sampleInput,
+			result: result{
+				err: nil,
+				res: sampleRes,
+			},
+			repoDep: func(c *gomock.Controller) internal.UserRepo {
+				m := mock.NewMockUserRepo(c)
+				m.EXPECT().Get(gomock.Eq(sampleInput.email)).Return(internal.User{}, nil)
+				return m
+			},
+			bcryptDep: func(c *gomock.Controller) internal.BcryptService {
+				m := mock.NewMockBcryptService(c)
+				m.EXPECT().CompareHashAndPassword(gomock.Eq([]byte{}), gomock.Eq([]byte(sampleInput.password))).Return(nil)
+				return m
+			},
+			jwtDep: func(c *gomock.Controller) internal.JWTService {
+				m := mock.NewMockJWTService(c)
+				m.EXPECT().GenerateToken(gomock.Eq("")).Return(sampleRes.Token, nil)
+				return m
+			},
+		},
+	}
+
+	for name, tt := range tests {
+		name := name
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			user := User{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			if tt.repoDep != nil {
+				user.repo = tt.repoDep(ctrl)
+			}
+
+			if tt.bcryptDep != nil {
+				user.bcrypt = tt.bcryptDep(ctrl)
+			}
+
+			if tt.jwtDep != nil {
+				user.jwt = tt.jwtDep(ctrl)
+			}
+
+			res, err := user.Login(tt.input.email, tt.input.password)
+			assert.Equal(t, tt.result.err, err)
+			assert.Equal(t, tt.result.res, res)
+		})
+	}
+}

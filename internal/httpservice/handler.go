@@ -116,7 +116,7 @@ func (h *Handler) HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		token, err := h.userService.Login(req.Email, req.Password)
+		res, err := h.userService.Login(req.Email, req.Password)
 		if err != nil {
 			fmt.Println(err)
 			switch err.(type) {
@@ -130,6 +130,6 @@ func (h *Handler) HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		writeResponse(w, response{Token: token}, http.StatusOK)
+		writeResponse(w, response{Token: res.Token}, http.StatusOK)
 	}
 }
