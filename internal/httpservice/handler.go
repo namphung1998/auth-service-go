@@ -1,4 +1,4 @@
-package internal
+package httpservice
 
 import (
 	"encoding/json"
@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/namphung1998/auth-service-go/internal"
 )
 
 type Handler struct {
-	userService UserService
+	userService internal.UserService
 }
 
-func NewHandler(userService UserService) *Handler {
+func NewHandler(userService internal.UserService) *Handler {
 	return &Handler{
 		userService: userService,
 	}
@@ -79,12 +80,12 @@ func (h *Handler) HandleCreateUser() http.HandlerFunc {
 			return
 		}
 
-		if err := h.userService.Create(CreateUserRequest{req.Email, req.Password}); err != nil {
+		if err := h.userService.Create(req.Email, req.Password); err != nil {
 			fmt.Println(err)
 			switch err.(type) {
-			case *InvalidRequestError:
+			case *internal.InvalidRequestError:
 				writeResponse(w, nil, http.StatusBadRequest)
-			case *EmailInUseError:
+			case *internal.EmailInUseError:
 				writeResponse(w, nil, http.StatusConflict)
 			default:
 				writeResponse(w, nil, http.StatusInternalServerError)

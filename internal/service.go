@@ -40,5 +40,5 @@ type CreateUserRequest struct {
 
 // UserService defines the contract for interacting with a service
 type UserService interface {
-	Create(request CreateUserRequest) error
+	Create(email, password string) error
 }

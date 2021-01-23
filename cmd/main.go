@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/namphung1998/auth-service-go/internal"
 	"github.com/namphung1998/auth-service-go/internal/data"
+	"github.com/namphung1998/auth-service-go/internal/httpservice"
 	"github.com/namphung1998/auth-service-go/internal/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -49,7 +49,7 @@ func main() {
 
 	userRepo := data.NewUserRepo(client.Database("auth-app"))
 	userService := service.NewUser(userRepo)
-	handler := internal.NewHandler(userService)
+	handler := httpservice.NewHandler(userService)
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)

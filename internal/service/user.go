@@ -17,20 +17,20 @@ func NewUser(repo internal.UserRepo) *User {
 }
 
 // Create registers a new user
-func (u *User) Create(request internal.CreateUserRequest) error {
-	taken, err := u.repo.IsEmailInUse(request.Email)
+func (u *User) Create(email, password string) error {
+	taken, err := u.repo.IsEmailInUse(email)
 	if err != nil {
 		return err
 	}
 
 	if taken {
-		return internal.NewEmailInUseError(request.Email)
+		return internal.NewEmailInUseError(email)
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	return u.repo.Create(request.Email, string(hash))
+	return u.repo.Create(email, string(hash))
 }
